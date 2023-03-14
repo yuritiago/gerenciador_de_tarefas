@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 
 import '../services/auth_service.dart';
 import '../models/user_model.dart';
@@ -18,9 +18,8 @@ class LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final authService = Provider.of<AuthService>(context);
-    final userModel = Provider.of<UserModel>(context);
-
+    final authService = Get.find<AuthService>();
+    final userModel = Get.find<UserModel>();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Login'),

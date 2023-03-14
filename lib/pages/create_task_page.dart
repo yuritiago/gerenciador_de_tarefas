@@ -1,9 +1,8 @@
 import 'dart:io';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:provider/provider.dart';
 import 'package:todo_list/models/task_model.dart';
 import 'package:todo_list/services/database_service.dart';
 import 'package:todo_list/services/storage_service.dart';
@@ -23,7 +22,7 @@ class CreateTaskPageState extends State<CreateTaskPage> {
   final _formKey = GlobalKey<FormState>();
 
   final _titleController = DebouncingController(
-    delay: const Duration(milliseconds: 500),
+    delay: const Duration(milliseconds: 5),
   );
   final _descriptionController = TextEditingController();
 
@@ -61,6 +60,16 @@ class CreateTaskPageState extends State<CreateTaskPage> {
                   textInputAction: TextInputAction.search,
                   decoration: const InputDecoration(
                     hintText: 'Insira o título da tarefa',
+                    border: OutlineInputBorder(),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.blue),
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.red),
+                    ),
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.red),
+                    ),
                   ),
                   onChanged: (value) {
                     setState(() {
@@ -78,6 +87,10 @@ class CreateTaskPageState extends State<CreateTaskPage> {
                 TextFormField(
                   decoration: const InputDecoration(
                     labelText: 'Descrição',
+                    border: OutlineInputBorder(),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.blue),
+                    ),
                   ),
                   maxLines: null,
                   onChanged: (value) {
@@ -92,11 +105,20 @@ class CreateTaskPageState extends State<CreateTaskPage> {
                   children: <Widget>[
                     Text(
                       'Data de vencimento: ${_dueDate.day}/${_dueDate.month}/${_dueDate.year}',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[700],
+                      ),
                     ),
                     ElevatedButton(
                       onPressed: _showDatePicker,
-                      child: const Text('Escolher'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                      ),
+                      child: const Text(
+                        'Escolher',
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
                   ],
                 ),
@@ -104,13 +126,37 @@ class CreateTaskPageState extends State<CreateTaskPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
-                    Text(
-                      'Horário de vencimento: ${_dueTime.hour}:${_dueTime.minute}',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.access_time,
+                          color: Colors.grey[700],
+                        ),
+                        const SizedBox(width: 8.0),
+                        Text(
+                          'Horário de vencimento: ${_dueTime.hour}:${_dueTime.minute}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                      ],
                     ),
-                    ElevatedButton(
+                    ElevatedButton.icon(
                       onPressed: _showTimePicker,
-                      child: const Text('Escolher'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                      ),
+                      icon: const Icon(
+                        Icons.schedule,
+                        color: Colors.white,
+                      ),
+                      label: const Text(
+                        'Escolher',
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -120,39 +166,109 @@ class CreateTaskPageState extends State<CreateTaskPage> {
                   children: <Widget>[
                     ElevatedButton(
                       onPressed: _getImageFromCamera,
-                      child: const Text('Câmera'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Row(
+                        children: const [
+                          Icon(
+                            Icons.camera_alt,
+                            color: Colors.white,
+                          ),
+                          SizedBox(width: 8.0),
+                          Text(
+                            'Câmera',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     ElevatedButton(
                       onPressed: _getImageFromGallery,
-                      child: const Text('Galeria'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Row(
+                        children: const [
+                          Icon(
+                            Icons.photo_library,
+                            color: Colors.white,
+                          ),
+                          SizedBox(width: 8.0),
+                          Text(
+                            'Galeria',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     _image == null
                         ? const SizedBox.shrink()
                         : SizedBox(
                             height: 50.0,
-                            child: Image.file(_image!),
+                            width: 50.0,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.file(
+                                _image!,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                           ),
                   ],
                 ),
                 const SizedBox(height: 16.0),
-                CheckboxListTile(
-                  title: const Text('Importante'),
-                  value: _isImportant,
-                  onChanged: (value) {
-                    setState(() {
-                      _isImportant = value ?? false;
-                    });
-                  },
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _isImportant,
+                      onChanged: (value) {
+                        setState(() {
+                          _isImportant = value ?? false;
+                        });
+                      },
+                    ),
+                    const Text(
+                      'Importante',
+                      style: TextStyle(fontSize: 16.0),
+                    ),
+                  ],
                 ),
-                ElevatedButton(
-                  onPressed: _createTask,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: const [
-                      Icon(Icons.save),
-                      SizedBox(width: 8.0),
-                      Text('Salvar'),
-                    ],
+                const SizedBox(height: 20.0),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _createTask,
+                    icon: const Icon(Icons.save),
+                    label: const Text(
+                      'Salvar',
+                      style: TextStyle(fontSize: 18.0),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      elevation: 2.0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30.0),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 16.0,
+                        horizontal: 32.0,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -221,10 +337,8 @@ class CreateTaskPageState extends State<CreateTaskPage> {
         _isLoading = true;
       });
       final state = context.findAncestorStateOfType<HomePageState>();
-      final uid =
-          Provider.of<AuthService>(context, listen: false).currentUser!.uid;
-      final databaseService =
-          Provider.of<DatabaseService>(context, listen: false);
+      final uid = Get.find<AuthService>().currentUser!.uid;
+      final databaseService = Get.find<DatabaseService>();
       final task = Task(
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
@@ -239,20 +353,13 @@ class CreateTaskPageState extends State<CreateTaskPage> {
         imageUrl: null,
       );
 
-      // Invoca a função de retorno de chamada passando a nova tarefa como parâmetro
       state?.addTaskToHomePage(task);
 
       try {
-        final databaseService =
-            Provider.of<DatabaseService>(context, listen: false);
-        final storageService =
-            Provider.of<StorageService>(context, listen: false);
+        final storageService = Get.find<StorageService>();
 
         String imageUrl = '';
         if (_image != null) {
-          // Faz o upload da imagem e pega a URL gerada
-          final storageService =
-              Provider.of<StorageService>(context, listen: false);
           final ref = await storageService.uploadTaskImage(_image!);
           imageUrl = ref;
         }

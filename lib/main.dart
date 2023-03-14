@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:provider/provider.dart';
 import 'package:todo_list/models/user_model.dart';
 import 'package:todo_list/pages/register_page.dart';
 import 'package:todo_list/services/auth_service.dart';
@@ -11,25 +10,18 @@ import 'firebase_options.dart';
 import 'pages/home_page.dart';
 import 'pages/login_page.dart';
 import 'pages/create_task_page.dart';
+import 'package:get/get.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (context) => AuthService()),
-        ChangeNotifierProvider(create: (context) => UserModel()),
-        ChangeNotifierProvider<DatabaseService>(
-          create: (context) => DatabaseService(
-              uid: Provider.of<AuthService>(context).currentUser!.uid),
-        ),
-        ChangeNotifierProvider(create: (context) => StorageService()),
-      ],
-      child: const MyApp(),
-    ),
-  );
+  Get.put<AuthService>(AuthService());
+  Get.put<UserModel>(UserModel());
+  Get.put<DatabaseService>(DatabaseService(uid: ""));
+  Get.put<StorageService>(StorageService());
+
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -37,17 +29,21 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: 'Organizador de tarefas',
       initialRoute: '/',
-      routes: {
-        '/': (context) => const AuthCheck(),
-        '/login': (context) => const LoginPage(),
-        '/register': (context) => const RegisterPage(),
-        '/home': (context) =>
-            HomePage(user: Provider.of<AuthService>(context).currentUser!),
-        '/create-task': (context) => const CreateTaskPage(),
-      },
+      getPages: [
+        GetPage(name: '/', page: () => const AuthCheck()),
+        GetPage(name: '/login', page: () => const LoginPage()),
+        GetPage(name: '/register', page: () => const RegisterPage()),
+        GetPage(
+          name: '/home',
+          page: () => HomePage(
+            user: Get.find<AuthService>().currentUser!,
+          ),
+        ),
+        GetPage(name: '/create-task', page: () => const CreateTaskPage()),
+      ],
     );
   }
 }

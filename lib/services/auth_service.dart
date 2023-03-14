@@ -1,8 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 
-class AuthService extends ChangeNotifier {
+class AuthService extends GetxController with GetxServiceMixin {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   User? usuario;
   bool isLoading = true;
@@ -16,7 +16,7 @@ class AuthService extends ChangeNotifier {
     _auth.authStateChanges().listen((User? user) {
       usuario = (user == null) ? null : user;
       isLoading = false;
-      notifyListeners();
+      update();
     });
   }
 

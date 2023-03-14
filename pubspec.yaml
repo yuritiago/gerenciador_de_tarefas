@@ -42,6 +42,7 @@ dependencies:
   firebase_storage: ^11.0.15
   logger: ^1.3.0
   debounce_throttle: ^2.0.0
+  get: ^4.6.5
 
 dev_dependencies:
   flutter_test:

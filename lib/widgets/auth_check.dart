@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:get/get.dart';
+
 import 'package:todo_list/pages/login_page.dart';
 
 import '../pages/home_page.dart';
@@ -16,7 +17,7 @@ class AuthCheck extends StatefulWidget {
 class AuthCheckState extends State<AuthCheck> {
   @override
   Widget build(BuildContext context) {
-    AuthService auth = Provider.of<AuthService>(context);
+    final auth = Get.find<AuthService>();
 
     if (auth.isLoading) {
       return loading();

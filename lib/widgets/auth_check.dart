@@ -17,24 +17,26 @@ class AuthCheck extends StatefulWidget {
 class AuthCheckState extends State<AuthCheck> {
   @override
   Widget build(BuildContext context) {
-    final auth = Get.find<AuthService>();
-
-    if (auth.isLoading) {
-      return loading();
-    } else if (auth.usuario == null) {
-      return const LoginPage();
-    } else {
-      return HomePage(
-        user: FirebaseAuth.instance.currentUser!,
-      );
-    }
-  }
-
-  loading() {
-    return const Scaffold(
-      body: Center(
-        child: CircularProgressIndicator(),
-      ),
+    return GetBuilder<AuthService>(
+      builder: (auth) {
+        if (auth.isLoading) {
+          return loading();
+        } else if (auth.user == null) {
+          return const LoginPage();
+        } else {
+          return HomePage(
+            user: FirebaseAuth.instance.currentUser!,
+          );
+        }
+      },
     );
   }
+}
+
+loading() {
+  return const Scaffold(
+    body: Center(
+      child: CircularProgressIndicator(),
+    ),
+  );
 }

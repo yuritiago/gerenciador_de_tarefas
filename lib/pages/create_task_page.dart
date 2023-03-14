@@ -337,7 +337,7 @@ class CreateTaskPageState extends State<CreateTaskPage> {
         _isLoading = true;
       });
       final state = context.findAncestorStateOfType<HomePageState>();
-      final uid = Get.find<AuthService>().currentUser!.uid;
+      final uid = Get.find<AuthService>().user!.uid;
       final databaseService = Get.find<DatabaseService>();
       final task = Task(
         title: _titleController.text.trim(),

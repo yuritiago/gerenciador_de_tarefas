@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 
 import '../services/auth_service.dart';
-import '../models/user_model.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -19,7 +18,6 @@ class LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final authService = Get.find<AuthService>();
-    final userModel = Get.find<UserModel>();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Login'),
@@ -45,20 +43,20 @@ class LoginPageState extends State<LoginPage> {
                 decoration: const InputDecoration(labelText: 'Senha'),
               ),
               const SizedBox(height: 32.0),
-              userModel.isLoading
+              authService.isLoading
                   ? const CircularProgressIndicator()
                   : ElevatedButton(
                       onPressed: () async {
                         if (_formKey.currentState!.validate()) {
-                          userModel.setIsLoading(true);
+                          authService.setIsLoading(true);
                           User? user = await authService.signin(
                               email: _email, password: _password);
                           if (user != null) {
-                            userModel.setUser(user);
+                            authService.setUser(user);
                             if (!mounted) return;
-                            Navigator.pushReplacementNamed(context, '/tasks');
+                            Get.offNamed('/tasks');
                           } else {
-                            userModel.setIsLoading(false);
+                            authService.setIsLoading(false);
                             if (!mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
@@ -72,7 +70,7 @@ class LoginPageState extends State<LoginPage> {
                     ),
               ElevatedButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, '/register');
+                  Get.toNamed('/register');
                 },
                 child: const Text('Cadastrar'),
               ),

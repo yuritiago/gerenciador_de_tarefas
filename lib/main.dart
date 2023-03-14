@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:todo_list/models/user_model.dart';
+
 import 'package:todo_list/pages/register_page.dart';
 import 'package:todo_list/services/auth_service.dart';
 import 'package:todo_list/services/database_service.dart';
@@ -16,8 +16,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  Get.put<AuthService>(AuthService());
-  Get.put<UserModel>(UserModel());
+  Get.lazyPut<AuthService>(() => AuthService());
   Get.put<DatabaseService>(DatabaseService(uid: ""));
   Get.put<StorageService>(StorageService());
 
@@ -39,7 +38,7 @@ class MyApp extends StatelessWidget {
         GetPage(
           name: '/home',
           page: () => HomePage(
-            user: Get.find<AuthService>().currentUser!,
+            user: Get.find<AuthService>().user!,
           ),
         ),
         GetPage(name: '/create-task', page: () => const CreateTaskPage()),

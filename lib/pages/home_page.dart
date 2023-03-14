@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../models/task_model.dart';
-import 'create_task_page.dart';
 
 class HomePage extends StatefulWidget {
   final User user;
@@ -20,7 +20,7 @@ class HomePageState extends State<HomePage> {
   void _logout(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
     if (!mounted) return;
-    Navigator.pop(context);
+    Get.offNamed('/login');
   }
 
   void addTaskToHomePage(Task task) {
@@ -42,27 +42,27 @@ class HomePageState extends State<HomePage> {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Container(
-            padding: EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: 16.0),
+                const SizedBox(height: 16.0),
                 Text(
                   'Olá, ${widget.user.displayName ?? widget.user.email}!',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 24.0,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 16.0),
-                Text(
+                const SizedBox(height: 16.0),
+                const Text(
                   'Suas tarefas:',
                   style: TextStyle(
                     fontSize: 18.0,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 16.0),
+                const SizedBox(height: 16.0),
                 StreamBuilder<QuerySnapshot>(
                   stream: _firestore
                       .collection('tasks')
@@ -77,7 +77,7 @@ class HomePageState extends State<HomePage> {
                     } else {
                       return ListView.builder(
                         shrinkWrap: true,
-                        physics: ClampingScrollPhysics(),
+                        physics: const ClampingScrollPhysics(),
                         itemCount: snapshot.data!.docs.length,
                         itemBuilder: (context, index) {
                           DocumentSnapshot task = snapshot.data!.docs[index];
@@ -110,12 +110,7 @@ class HomePageState extends State<HomePage> {
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const CreateTaskPage(),
-            ),
-          );
+          Get.offNamed('/create-task');
         },
       ),
     );

@@ -27,6 +27,8 @@ class CreateTaskPageState extends State<CreateTaskPage> {
     delay: const Duration(milliseconds: 5),
   );
   final _descriptionController = TextEditingController();
+  final DatabaseService _databaseService = Get.put(DatabaseService(uid: ''));
+  final HomePageController _homePageController = Get.put(HomePageController());
 
   String _title = '';
   String _description = '';
@@ -44,6 +46,14 @@ class CreateTaskPageState extends State<CreateTaskPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Criar Tarefa'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              Get.offNamed('/home');
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -355,23 +365,31 @@ class CreateTaskPageState extends State<CreateTaskPage> {
         taskModel.imageUrl = storageUrl;
       }
       try {
-        await Get.find<DatabaseService>().createTask(
+        await _databaseService.createTask(
           taskModel,
           _image,
           uid,
         );
         _taskCreated.value = true;
+
+        final docRef = await FirebaseFirestore.instance
+            .collection('tasks')
+            .add(taskModel.toJson());
+        print('Documento criado com ID: ${docRef.id}');
+        _taskCreated.value = true;
         Get.snackbar(
           'Tarefa criada com sucesso',
           'Sua tarefa foi criada com sucesso.',
         );
-        Get.find<HomePageController>().loadTaskList();
-        Get.back();
-      } catch (e) {
+        await _homePageController.loadTaskList();
+        Get.offNamed('/home');
+      } catch (e, stackTrace) {
         Get.snackbar(
           'Erro ao criar tarefa',
           'Ocorreu um erro ao criar sua tarefa. Tente novamente mais tarde.',
         );
+        print('Erro ao criar tarefa: $e');
+        debugPrint('Stack trace: $stackTrace');
       } finally {
         _isLoading.value = false;
       }

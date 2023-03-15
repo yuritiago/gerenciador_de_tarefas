@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 import '../models/task_model.dart';
 
@@ -12,16 +12,30 @@ class DatabaseService extends ChangeNotifier {
 
   DatabaseService({required this.uid});
 
-  Future<List<Task>> getTaskList() async {
-    final snapshot = await _tasksCollection
+  Future<List<Task>> getTaskList(String uid) async {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('tasks')
         .where('userId', isEqualTo: uid)
-        .orderBy('dateTime', descending: true)
         .get();
-    return snapshot.docs
-        .map((doc) =>
-            Task.fromFirestore(doc as QuerySnapshot<Map<String, dynamic>>))
-        .expand((task) => task)
-        .toList();
+    final taskList = querySnapshot.docs.map((doc) {
+      final data = doc.data();
+      return Task(
+        id: doc.id,
+        title: data['title'],
+        description: data['description'],
+        dueDate: data['dueDate'] != null
+            ? (data['dueDate'] as Timestamp).toDate()
+            : null,
+        dueTime: data['dueTime'] != null
+            ? TimeOfDay.fromDateTime(data['dueTime']!)
+            : null,
+        isImportant: data['isImportant'],
+        attachments: List<String>.from(data['attachments'] ?? []),
+        userId: data['userId'],
+        imageUrl: data['imageUrl'],
+      );
+    }).toList();
+    return taskList;
   }
 
   Future<void> createTask(Task task, File? imageUrl, String userId) async {

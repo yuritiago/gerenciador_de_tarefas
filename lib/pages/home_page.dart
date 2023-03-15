@@ -1,41 +1,29 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../models/task_model.dart';
+import '../services/database_service.dart';
+import '../utils/home_page_controller.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends StatelessWidget {
   final User user;
 
-  const HomePage({Key? key, required this.user}) : super(key: key);
-
-  @override
-  HomePageState createState() => HomePageState();
-}
-
-class HomePageState extends State<HomePage> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  void _logout(BuildContext context) async {
-    await FirebaseAuth.instance.signOut();
-    if (!mounted) return;
-    Get.offNamed('/login');
-  }
-
-  void addTaskToHomePage(Task task) {
-    _firestore.collection('tasks').add(task.toJson());
-  }
-
+  HomePage({Key? key, required this.user}) : super(key: key);
+  final DatabaseService _databaseService = Get.put(DatabaseService(uid: ''));
   @override
   Widget build(BuildContext context) {
+    final controller = Get.put(HomePageController());
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('To-Do List'),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () => _logout(context),
+            onPressed: () {
+              final controller = Get.find<HomePageController>();
+              controller.logout();
+            },
           ),
         ],
       ),
@@ -48,7 +36,7 @@ class HomePageState extends State<HomePage> {
               children: [
                 const SizedBox(height: 16.0),
                 Text(
-                  'Olá, ${widget.user.displayName ?? widget.user.email}!',
+                  'Olá, ${user.displayName ?? user.email}!',
                   style: const TextStyle(
                     fontSize: 24.0,
                     fontWeight: FontWeight.bold,
@@ -63,45 +51,37 @@ class HomePageState extends State<HomePage> {
                   ),
                 ),
                 const SizedBox(height: 16.0),
-                StreamBuilder<QuerySnapshot>(
-                  stream: _firestore
-                      .collection('tasks')
-                      .where('user_id', isEqualTo: widget.user.uid)
-                      .orderBy('date_time', descending: false)
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
-                      return const Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    } else {
-                      return ListView.builder(
-                        shrinkWrap: true,
-                        physics: const ClampingScrollPhysics(),
-                        itemCount: snapshot.data!.docs.length,
-                        itemBuilder: (context, index) {
-                          DocumentSnapshot task = snapshot.data!.docs[index];
-                          return Card(
-                            child: ListTile(
-                              title: Text(task['title']),
-                              subtitle:
-                                  Text(task['date_time'].toDate().toString()),
-                              trailing: IconButton(
-                                icon: const Icon(Icons.delete),
-                                onPressed: () {
-                                  _firestore
-                                      .collection('tasks')
-                                      .doc(task.id)
-                                      .delete();
-                                },
-                              ),
+                Obx(() {
+                  final List<Task> taskList = controller.taskList;
+                  if (taskList.isEmpty) {
+                    return const Center(
+                      child: Text('Você não tem tarefas.'),
+                    );
+                  } else {
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      physics: const ClampingScrollPhysics(),
+                      itemCount: taskList.length,
+                      itemBuilder: (context, index) {
+                        final task = taskList[index];
+                        return Card(
+                          child: ListTile(
+                            title: Text(task.title),
+                            subtitle: Text(
+                              '${task.dueDate} ${task.dueTime}',
                             ),
-                          );
-                        },
-                      );
-                    }
-                  },
-                ),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () {
+                                _databaseService.deleteTask(task);
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  }
+                }),
               ],
             ),
           ),

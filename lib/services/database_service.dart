@@ -12,16 +12,16 @@ class DatabaseService extends ChangeNotifier {
 
   DatabaseService({required this.uid});
 
-  Stream<List<Task>> get tasks {
-    return _tasksCollection
+  Future<List<Task>> getTaskList() async {
+    final snapshot = await _tasksCollection
         .where('userId', isEqualTo: uid)
         .orderBy('dateTime', descending: true)
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) =>
-                Task.fromFirestore(doc as QuerySnapshot<Map<String, dynamic>>))
-            .expand((task) => task)
-            .toList());
+        .get();
+    return snapshot.docs
+        .map((doc) =>
+            Task.fromFirestore(doc as QuerySnapshot<Map<String, dynamic>>))
+        .expand((task) => task)
+        .toList();
   }
 
   Future<void> createTask(Task task, File? imageUrl, String userId) async {

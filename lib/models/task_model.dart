@@ -14,7 +14,7 @@ class Task {
   List<String> attachments;
   DateTime? dateTime;
   bool? important;
-  File? imageUrl;
+  String? imageUrl;
 
   Task({
     required this.title,
@@ -27,7 +27,7 @@ class Task {
     this.dueTime,
     this.dateTime,
     this.important,
-    required this.imageUrl,
+    this.imageUrl,
   });
 
   static Task fromJson(Map<String, dynamic> json) {
@@ -43,17 +43,18 @@ class Task {
     final important = json['important'] as bool?;
 
     return Task(
-      title: json['title'] as String,
-      description: json['description'] as String,
-      isImportant: json['isImportant'] as bool,
-      attachments: List<String>.from(json['attachments'] as List<dynamic>),
-      userId: json['userId'] as String,
-      id: json['id'] as String,
+      title: json['title'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      isImportant: json['isImportant'] as bool? ?? false,
+      attachments:
+          List<String>.from(json['attachments'] as List<dynamic>? ?? []),
+      userId: json['userId'] as String? ?? '',
+      id: json['id'] as String? ?? '',
       dueDate: dueDate,
       dueTime: dueTime,
       dateTime: dateTime,
-      important: important,
-      imageUrl: json['imageUrl'] as File,
+      important: important ?? false,
+      imageUrl: json['imageUrl'] as String?,
     );
   }
 
@@ -107,7 +108,7 @@ class Task {
       attachments: attachments ?? List.from(this.attachments),
       dateTime: dateTime ?? this.dateTime,
       important: important ?? this.important,
-      imageUrl: imageUrl == null ? null : File(imageUrl),
+      imageUrl: imageUrl,
     );
   }
 }

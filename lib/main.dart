@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -16,9 +17,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
+  Get.put<FirebaseFirestore>(FirebaseFirestore.instance);
   Get.lazyPut<AuthService>(() => AuthService());
-  Get.put<DatabaseService>(DatabaseService(uid: ""));
-  Get.put<StorageService>(StorageService());
+  Get.lazyPut<DatabaseService>(() => DatabaseService(uid: ""));
+  Get.lazyPut<StorageService>(() => StorageService());
 
   runApp(const MyApp());
 }

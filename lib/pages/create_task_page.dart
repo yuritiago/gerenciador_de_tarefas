@@ -1,15 +1,17 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:todo_list/models/task_model.dart';
 import 'package:todo_list/services/database_service.dart';
 import 'package:todo_list/services/storage_service.dart';
+import 'package:uuid/uuid.dart';
 
 import '../services/auth_service.dart';
 import '../utils/debouncing_controller.dart';
-import 'home_page.dart';
+import '../utils/home_page_controller.dart';
 
 class CreateTaskPage extends StatefulWidget {
   const CreateTaskPage({Key? key}) : super(key: key);
@@ -32,9 +34,10 @@ class CreateTaskPageState extends State<CreateTaskPage> {
   TimeOfDay _dueTime = TimeOfDay.now();
   File? _image;
   bool _isImportant = false;
+  String? imageUrl;
 
-  bool _isLoading = false;
-  bool _taskCreated = false;
+  late RxBool _isLoading = false.obs;
+  late RxBool _taskCreated = false.obs;
 
   @override
   Widget build(BuildContext context) {
@@ -332,46 +335,45 @@ class CreateTaskPageState extends State<CreateTaskPage> {
   }
 
   Future<void> _createTask() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      setState(() {
-        _isLoading = true;
-      });
-      final state = context.findAncestorStateOfType<HomePageState>();
+    if (_formKey.currentState!.validate()) {
+      _isLoading.value = true;
       final uid = Get.find<AuthService>().user!.uid;
-      final databaseService = Get.find<DatabaseService>();
-      final task = Task(
-        title: _titleController.text.trim(),
-        description: _descriptionController.text.trim(),
+      final taskModel = Task(
+        id: const Uuid().v4(),
+        title: _title,
+        description: _description,
         dueDate: _dueDate,
         dueTime: _dueTime,
         isImportant: _isImportant,
         attachments: [],
-        dateTime: DateTime.now(),
-        important: false,
-        id: '',
         userId: uid,
-        imageUrl: null,
+        imageUrl: imageUrl,
       );
-
-      state?.addTaskToHomePage(task);
-
+      if (_image != null) {
+        final storageUrl =
+            await Get.find<StorageService>().uploadTaskImage(_image!);
+        taskModel.imageUrl = storageUrl;
+      }
       try {
-        final storageService = Get.find<StorageService>();
-
-        String imageUrl = '';
-        if (_image != null) {
-          final ref = await storageService.uploadTaskImage(_image!);
-          imageUrl = ref;
-        }
-
-        await databaseService.createTask(task, _image, uid);
+        await Get.find<DatabaseService>().createTask(
+          taskModel,
+          _image,
+          uid,
+        );
+        _taskCreated.value = true;
+        Get.snackbar(
+          'Tarefa criada com sucesso',
+          'Sua tarefa foi criada com sucesso.',
+        );
+        Get.find<HomePageController>().loadTaskList();
+        Get.back();
       } catch (e) {
-        print('Erro ao criar tarefa: $e');
+        Get.snackbar(
+          'Erro ao criar tarefa',
+          'Ocorreu um erro ao criar sua tarefa. Tente novamente mais tarde.',
+        );
       } finally {
-        setState(() {
-          _isLoading = false;
-          _taskCreated = true;
-        });
+        _isLoading.value = false;
       }
     }
   }
